@@ -8,8 +8,8 @@ services:
     networks:
       - wordpress
     depends_on:
-      - webserver
-        #condition: service_healthy
+      webserver:
+        condition: service_healthy
     container_name: webproxy
 
   webserver:
@@ -24,9 +24,14 @@ services:
     networks:
       - wordpress
     depends_on:
-      - database
-        #condition: service_healthy
+      database:
+        condition: service_healthy
     container_name: webserver
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   database:
     image: mysql:5.7
@@ -40,6 +45,11 @@ services:
     networks:
       - wordpress
     container_name: database
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   app:
